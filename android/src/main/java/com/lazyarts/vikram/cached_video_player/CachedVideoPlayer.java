@@ -11,7 +11,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.view.Surface;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.*;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -112,20 +112,20 @@ final class CachedVideoPlayer {
             Uri uri, DataSource.Factory mediaDataSourceFactory, String formatHint, Context context) {
         int type;
         if (formatHint == null) {
-            type = Util.inferContentType(uri.getLastPathSegment());
+            type = Util.inferContentTypeForExtension(uri.getLastPathSegment());
         } else {
             switch (formatHint) {
                 case FORMAT_SS:
-                    type = C.TYPE_SS;
+                    type = C.CONTENT_TYPE_SS;
                     break;
                 case FORMAT_DASH:
-                    type = C.TYPE_DASH;
+                    type = C.CONTENT_TYPE_DASH;
                     break;
                 case FORMAT_HLS:
-                    type = C.TYPE_HLS;
+                    type = C.CONTENT_TYPE_HLS;
                     break;
                 case FORMAT_OTHER:
-                    type = C.TYPE_OTHER;
+                    type = C.CONTENT_TYPE_OTHER;
                     break;
                 default:
                     type = -1;
@@ -133,20 +133,20 @@ final class CachedVideoPlayer {
             }
         }
         switch (type) {
-            case C.TYPE_SS:
+            case C.CONTENT_TYPE_SS:
                 return new SsMediaSource.Factory(
                         new DefaultSsChunkSource.Factory(mediaDataSourceFactory),
                         new DefaultDataSource.Factory(context, mediaDataSourceFactory))
                         .createMediaSource(MediaItem.fromUri(uri));
-            case C.TYPE_DASH:
+            case C.CONTENT_TYPE_DASH:
                 return new DashMediaSource.Factory(
                         new DefaultDashChunkSource.Factory(mediaDataSourceFactory),
                         new DefaultDataSource.Factory(context, mediaDataSourceFactory))
                         .createMediaSource(MediaItem.fromUri(uri));
-            case C.TYPE_HLS:
+            case C.CONTENT_TYPE_HLS:
                 return new HlsMediaSource.Factory(mediaDataSourceFactory)
                         .createMediaSource(MediaItem.fromUri(uri));
-            case C.TYPE_OTHER:
+            case C.CONTENT_TYPE_OTHER:
                 return new ProgressiveMediaSource.Factory(mediaDataSourceFactory)
                         .createMediaSource(MediaItem.fromUri(uri));
             default: {
@@ -230,7 +230,7 @@ final class CachedVideoPlayer {
 
     private static void setAudioAttributes(ExoPlayer exoPlayer, boolean isMixMode) {
         exoPlayer.setAudioAttributes(
-                new AudioAttributes.Builder().setContentType(C.CONTENT_TYPE_MOVIE).build(), !isMixMode);
+                new AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), !isMixMode);
     }
 
     void play() {

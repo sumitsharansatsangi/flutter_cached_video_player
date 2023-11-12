@@ -2,44 +2,44 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
+// @dart = 3.1
 
 import 'package:pigeon/pigeon_lib.dart';
 
 class TextureMessage {
-  int textureId;
+  late int textureId;
 }
 
 class LoopingMessage {
-  int textureId;
-  bool isLooping;
+  late int textureId;
+  late bool isLooping;
 }
 
 class VolumeMessage {
-  int textureId;
-  double volume;
+  late int textureId;
+  late double volume;
 }
 
 class PlaybackSpeedMessage {
-  int textureId;
-  double speed;
+  late int textureId;
+  late double speed;
 }
 
 class PositionMessage {
-  int textureId;
-  int position;
+  late int textureId;
+  late int position;
 }
 
 class CreateMessage {
-  String asset;
-  String uri;
-  String packageName;
-  String formatHint;
-  Map<String, String> httpHeaders;
+  late String asset;
+  late String uri;
+  late String packageName;
+  late String formatHint;
+  Map<String, String>? httpHeaders;
 }
 
 class MixWithOthersMessage {
-  bool mixWithOthers;
+  late bool mixWithOthers;
 }
 
 @HostApi(dartHostTestHandler: 'TestHostVideoPlayerApi')
