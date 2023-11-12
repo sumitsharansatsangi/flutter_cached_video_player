@@ -31,33 +31,10 @@ public class CachedVideoPlayerPlugin implements FlutterPlugin, VideoPlayerApi {
   private static final String TAG = "VideoPlayerPlugin";
   private final LongSparseArray<CachedVideoPlayer> videoPlayers = new LongSparseArray<>();
   private FlutterState flutterState;
-  private VideoPlayerOptions options = new VideoPlayerOptions();
+  private final VideoPlayerOptions options = new VideoPlayerOptions();
 
   /** Register this with the v2 embedding for the plugin to respond to lifecycle callbacks. */
   public CachedVideoPlayerPlugin() {}
-
-  @SuppressWarnings("deprecation")
-  private CachedVideoPlayerPlugin(io.flutter.plugin.common.PluginRegistry.Registrar registrar) {
-    this.flutterState =
-        new FlutterState(
-            registrar.context(),
-            registrar.messenger(),
-            registrar::lookupKeyForAsset,
-            registrar::lookupKeyForAsset,
-            registrar.textures());
-    flutterState.startListening(this, registrar.messenger());
-  }
-
-  /** Registers this with the stable v1 embedding. Will not respond to lifecycle events. */
-  @SuppressWarnings("deprecation")
-  public static void registerWith(io.flutter.plugin.common.PluginRegistry.Registrar registrar) {
-    final CachedVideoPlayerPlugin plugin = new CachedVideoPlayerPlugin(registrar);
-    registrar.addViewDestroyListener(
-        view -> {
-          plugin.onDestroy();
-          return false; // We are not interested in assuming ownership of the NativeView.
-        });
-  }
 
   @Override
   public void onAttachedToEngine(FlutterPluginBinding binding) {
@@ -68,9 +45,10 @@ public class CachedVideoPlayerPlugin implements FlutterPlugin, VideoPlayerApi {
       } catch (KeyManagementException | NoSuchAlgorithmException e) {
         Log.w(
             TAG,
-            "Failed to enable TLSv1.1 and TLSv1.2 Protocols for API level 19 and below.\n"
-                + "For more information about Socket Security, please consult the following link:\n"
-                + "https://developer.android.com/reference/javax/net/ssl/SSLSocket",
+                """
+                        Failed to enable TLSv1.1 and TLSv1.2 Protocols for API level 19 and below.
+                        For more information about Socket Security, please consult the following link:
+                        https://developer.android.com/reference/javax/net/ssl/SSLSocket""",
             e);
       }
     }

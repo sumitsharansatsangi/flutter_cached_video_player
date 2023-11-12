@@ -4,8 +4,8 @@
 
 package com.lazyarts.vikram.cached_video_player;
 
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_ALL;
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_OFF;
+import static androidx.media3.common.Player.REPEAT_MODE_ALL;
+import static androidx.media3.common.Player.REPEAT_MODE_OFF;
 
 import android.content.Context;
 import android.net.Uri;
@@ -13,24 +13,24 @@ import android.view.Surface;
 
 import androidx.annotation.*;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.Format;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.audio.AudioAttributes;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.source.dash.DashMediaSource;
-import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
-import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
-import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSource;
-import com.google.android.exoplayer2.util.Util;
+import androidx.media3.common.C;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.common.Format;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player;
+import androidx.media3.common.AudioAttributes;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.exoplayer.dash.DashMediaSource;
+import androidx.media3.exoplayer.dash.DefaultDashChunkSource;
+import androidx.media3.exoplayer.hls.HlsMediaSource;
+import androidx.media3.exoplayer.smoothstreaming.DefaultSsChunkSource;
+import androidx.media3.exoplayer.smoothstreaming.SsMediaSource;
+import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.common.util.Util;
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.view.TextureRegistry;
@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 final class CachedVideoPlayer {
     private static final String FORMAT_SS = "ss";
@@ -47,13 +48,13 @@ final class CachedVideoPlayer {
     private static final String FORMAT_HLS = "hls";
     private static final String FORMAT_OTHER = "other";
 
-    private ExoPlayer exoPlayer;
+    private final ExoPlayer exoPlayer;
 
     private Surface surface;
 
     private final TextureRegistry.SurfaceTextureEntry textureEntry;
 
-    private QueuingEventSink eventSink = new QueuingEventSink();
+    private final QueuingEventSink eventSink = new QueuingEventSink();
 
     private final EventChannel eventChannel;
 
@@ -112,46 +113,38 @@ final class CachedVideoPlayer {
             Uri uri, DataSource.Factory mediaDataSourceFactory, String formatHint, Context context) {
         int type;
         if (formatHint == null) {
-            type = Util.inferContentTypeForExtension(uri.getLastPathSegment());
+            type = Util.inferContentTypeForExtension(Objects.requireNonNull(uri.getLastPathSegment()));
         } else {
-            switch (formatHint) {
-                case FORMAT_SS:
-                    type = C.CONTENT_TYPE_SS;
-                    break;
-                case FORMAT_DASH:
-                    type = C.CONTENT_TYPE_DASH;
-                    break;
-                case FORMAT_HLS:
-                    type = C.CONTENT_TYPE_HLS;
-                    break;
-                case FORMAT_OTHER:
-                    type = C.CONTENT_TYPE_OTHER;
-                    break;
-                default:
-                    type = -1;
-                    break;
-            }
+            type = switch (formatHint) {
+                case FORMAT_SS -> C.CONTENT_TYPE_SS;
+                case FORMAT_DASH -> C.CONTENT_TYPE_DASH;
+                case FORMAT_HLS -> C.CONTENT_TYPE_HLS;
+                case FORMAT_OTHER -> C.CONTENT_TYPE_OTHER;
+                default -> -1;
+            };
         }
         switch (type) {
-            case C.CONTENT_TYPE_SS:
+            case C.CONTENT_TYPE_SS -> {
                 return new SsMediaSource.Factory(
                         new DefaultSsChunkSource.Factory(mediaDataSourceFactory),
                         new DefaultDataSource.Factory(context, mediaDataSourceFactory))
                         .createMediaSource(MediaItem.fromUri(uri));
-            case C.CONTENT_TYPE_DASH:
+            }
+            case C.CONTENT_TYPE_DASH -> {
                 return new DashMediaSource.Factory(
                         new DefaultDashChunkSource.Factory(mediaDataSourceFactory),
                         new DefaultDataSource.Factory(context, mediaDataSourceFactory))
                         .createMediaSource(MediaItem.fromUri(uri));
-            case C.CONTENT_TYPE_HLS:
+            }
+            case C.CONTENT_TYPE_HLS -> {
                 return new HlsMediaSource.Factory(mediaDataSourceFactory)
                         .createMediaSource(MediaItem.fromUri(uri));
-            case C.CONTENT_TYPE_OTHER:
+            }
+            case C.CONTENT_TYPE_OTHER -> {
                 return new ProgressiveMediaSource.Factory(mediaDataSourceFactory)
                         .createMediaSource(MediaItem.fromUri(uri));
-            default: {
-                throw new IllegalStateException("Unsupported type: " + type);
             }
+            default -> throw new IllegalStateException("Unsupported type: " + type);
         }
     }
 
@@ -212,9 +205,7 @@ final class CachedVideoPlayer {
                     @Override
                     public void onPlayerError(@NonNull PlaybackException error) {
                         setBuffering(false);
-                        if (eventSink != null) {
-                            eventSink.error("VideoError", "Video player had error " + error, null);
-                        }
+                        eventSink.error("VideoError", "Video player had error " + error, null);
                     }
                 });
     }
